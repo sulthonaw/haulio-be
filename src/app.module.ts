@@ -6,6 +6,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { EventsModule } from './events/events.module';
 import { MessagesModule } from './messages/messages.module';
+import { OperationsModule } from './operations/operations.module';
+import { TelemetryModule } from './telemetry/telemetry.module';
 
 @Module({
   imports: [
@@ -22,11 +24,10 @@ import { MessagesModule } from './messages/messages.module';
     }),
     EventsModule,
     MessagesModule,
+    OperationsModule,
+    TelemetryModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
-
-
-

@@ -1,6 +1,6 @@
-# Haulio Backend (NestJS + Socket.io + PostgreSQL)
+# Haulio Backend (NestJS operations gateway + Socket.io + PostgreSQL)
 
-Project backend dibangun menggunakan **NestJS**, **Socket.io** (real-time communication), dan **PostgreSQL** (TypeORM). Dilengkapi dengan konfigurasi **Docker** multi-stage dan **GitHub Actions CI/CD** untuk lingkungan Staging dan Production.
+Project backend dibangun menggunakan **NestJS**, **Socket.io** (real-time communication), dan **PostgreSQL** (TypeORM). Untuk aplikasi hackathon ini, backend juga menjadi gateway loopback yang meneruskan endpoint operasi ke service data-science Python. Dilengkapi dengan konfigurasi **Docker** multi-stage dan **GitHub Actions CI/CD** untuk lingkungan Staging dan Production.
 
 ---
 
@@ -34,8 +34,16 @@ Kami menyediakan template environment untuk setiap environment:
 Konfigurasi utama di dalam file `.env.*`:
 ```env
 NODE_ENV=development/staging/production
-PORT=3000
-CORS_ORIGIN=*
+PORT=3001
+CORS_ORIGIN=http://127.0.0.1:3000
+DS_API_URL=http://127.0.0.1:8080/api/v1
+DS_IOT_SHARED_SECRET=same-value-as-the-DS-IOT_SHARED_SECRET
+
+# disabled until a broker and authorized per-device mapping are configured
+MQTT_ENABLED=false
+MQTT_URL=mqtts://broker.example.com:8883
+MQTT_TOPIC_PREFIX=haulio/v1/telemetry
+IOT_DEVICE_MAPPINGS=[{"device_id":"gw-trk-01","truck_id":"TRK-01","secret":"per-device-secret"}]
 
 # PostgreSQL Config
 DB_HOST=localhost (atau service-name di compose)
@@ -68,7 +76,7 @@ DB_SYNCHRONIZE=true (pastikan false di production!)
    ```bash
    npm run start:dev
    ```
-   Aplikasi akan berjalan di `http://localhost:3000/api` dan WebSocket Server di `ws://localhost:3000`.
+   Aplikasi akan berjalan di `http://127.0.0.1:3001/api` dan WebSocket Server di `ws://127.0.0.1:3001`.
 
 ---
 
@@ -140,6 +148,76 @@ Production menggunakan build target `runner` yang teroptimasi penuh serta menona
 ---
 
 ## 4. Dokumentasi API REST & Real-time (Socket.io)
+
+### Gateway operasi hackathon
+
+Frontend Next.js memanggil gateway ini secara server-side, sehingga browser hanya
+mengakses `http://127.0.0.1:3000/api/v1/*`. Gateway meneruskan endpoint operasi
+yang diketahui ke `DS_API_URL`; kredensial Google Routes tetap berada di service
+data-science dan tidak diteruskan ke browser.
+
+```text
+FE (127.0.0.1:3000) -> Nest gateway (127.0.0.1:3001/api/v1) -> DS (127.0.0.1:8080/api/v1)
+```
+
+Endpoint gateway mencakup health, metrics, fleet, orders, regions,
+recommendations, route options, live traffic, telemetry, simulation tick, dan
+dispatcher decision. Endpoint di luar kontrak tersebut tidak diproxy.
+
+Untuk menjalankan seluruh stack secara lokal:
+
+```bash
+# Terminal 1: DS
+cd ../compfest-aic-2026-ds
+python3 run.py
+
+# Terminal 2: Nest gateway and local Postgres
+cd ../haulio-be
+docker compose up -d postgres
+npm ci
+npm run start:dev
+
+# Terminal 3: frontend
+cd ../compfest-aic-2026-fe
+cp .env.local.example .env.local # only if .env.local does not exist
+npm run dev -- --hostname 127.0.0.1
+```
+
+### IoT telemetry gateway
+
+Devices publish an MQTT 5 JSON event at QoS 1 on a device-specific topic:
+
+```text
+IoT gateway -> MQTT broker -> NestJS validation + PostgreSQL -> signed DS telemetry -> Socket.io
+haulio/v1/telemetry/{device_id}
+```
+
+The gateway normalizes/validates GNSS (`lat`, `lon`, `speed_kph`, `heading`,
+`gps_accuracy_m`), cargo weight, CAN/J1939 readings, optional IMU readings and
+device-health readings. It authorizes `device_id` against `truck_id` using the
+server-only `IOT_DEVICE_MAPPINGS` JSON, verifies the device HMAC, enforces
+monotonic sequence numbers, stores the immutable event and latest truck state,
+and emits `telemetry` / `truck_state` Socket.io events. A late but valid event
+is stored as `replayed` for the gateway's store-and-forward buffer.
+
+Set `DS_IOT_SHARED_SECRET` to the same value as the DS service's
+`IOT_SHARED_SECRET`; it is a separate server-to-server credential and must not
+be placed on a device. The backend re-signs the normalized payload before
+calling the loopback DS API.
+
+For a local broker only, start the loopback-bound Mosquitto service and set
+`MQTT_ENABLED=true` plus a non-empty, per-device mapping in
+`.env.development`:
+
+```bash
+docker compose up -d postgres mosquitto
+```
+
+The included broker permits anonymous `mqtt://` traffic solely on `127.0.0.1`.
+Production configuration is refused unless `MQTT_URL` uses `mqtts://`; use a
+hardened broker with per-device authentication, topic ACLs, credential rotation
+and preferably mTLS. Never expose the DS telemetry endpoint directly to
+devices.
 
 ### HTTP REST Endpoints
 

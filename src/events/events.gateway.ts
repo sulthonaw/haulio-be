@@ -42,17 +42,27 @@ export class EventsGateway
     this.logger.log(`Client disconnected: ${client.id}`);
   }
 
+  emitTelemetry(payload: Record<string, unknown>): void {
+    this.server?.emit('telemetry', payload);
+    this.server?.emit('truck_state', payload);
+  }
+
   // Custom event listener for "message" event
   @SubscribeMessage('message')
   async handleMessage(
     @MessageBody() data: { sender: string; text: string; room?: string },
     @ConnectedSocket() client: Socket,
   ): Promise<void> {
-    this.logger.log(`Received message from ${client.id}: ${JSON.stringify(data)}`);
+    this.logger.log(
+      `Received message from ${client.id}: ${JSON.stringify(data)}`,
+    );
 
     // Save message to database
-    const savedMessage = await this.messagesService.create(data.sender, data.text);
-    
+    const savedMessage = await this.messagesService.create(
+      data.sender,
+      data.text,
+    );
+
     const payload = {
       id: savedMessage.id,
       sender: savedMessage.sender,

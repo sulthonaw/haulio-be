@@ -28,9 +28,8 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(port);
-  logger.log(`Application is running on: http://localhost:${port}/api`);
-  logger.log(`WebSocket Gateway is running on: ws://localhost:${port}`);
+  await app.listen(port, '127.0.0.1');
+  logger.log(`Application is running on: http://127.0.0.1:${port}/api`);
+  logger.log(`WebSocket Gateway is running on: ws://127.0.0.1:${port}`);
 }
 bootstrap();
-
