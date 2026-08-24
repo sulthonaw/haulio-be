@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Production NestJS App
+  api:
+    build:
+      context: .
+      target: runner
+    container_name: haulio_api_prod
+    restart: always
+    ports:
+      - "80:3000" # Expose production on port 80 (or load balancer port)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_HOST=postgres-prod
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres_prod_pass
+      - DB_DATABASE=haulio_prod
+      - DB_SYNCHRONIZE=false
+      - CORS_ORIGIN=https://yourproductionapp.com
+    env_file:
+      - .env.production
+    depends_on:
+      postgres-prod:
+        condition: service_healthy
+
+  # Production PostgreSQL DB
+  postgres-prod:
+    image: postgres:16-alpine
+    container_name: haulio_postgres_prod
+    restart: always
+    ports:
+      - "5434:5432" # Expose production DB on a custom port
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_prod_pass
+      - POSTGRES_DB=haulio_prod
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d haulio_prod"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_prod:

@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  # Staging NestJS App
+  api:
+    build:
+      context: .
+      target: runner
+    container_name: haulio_api_staging
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=staging
+      - PORT=3000
+      - DB_HOST=postgres-staging
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres_staging_pass
+      - DB_DATABASE=haulio_staging
+      - DB_SYNCHRONIZE=true
+      - CORS_ORIGIN=*
+    env_file:
+      - .env.staging
+    depends_on:
+      postgres-staging:
+        condition: service_healthy
+
+  # Staging PostgreSQL DB (in case database is self-hosted in staging docker environment)
+  postgres-staging:
+    image: postgres:16-alpine
+    container_name: haulio_postgres_staging
+    restart: always
+    ports:
+      - "5433:5432" # Expose staging DB on a different port to avoid local conflicts
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres_staging_pass
+      - POSTGRES_DB=haulio_staging
+    volumes:
+      - postgres_data_staging:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d haulio_staging"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_staging:
