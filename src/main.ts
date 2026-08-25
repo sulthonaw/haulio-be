@@ -9,6 +9,7 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') ?? 3000;
+  const host = configService.get<string>('HOST') ?? '127.0.0.1';
   const corsOrigin = configService.get<string>('CORS_ORIGIN') ?? '*';
 
   // Enable CORS
@@ -28,8 +29,8 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(port, '127.0.0.1');
-  logger.log(`Application is running on: http://127.0.0.1:${port}/api`);
-  logger.log(`WebSocket Gateway is running on: ws://127.0.0.1:${port}`);
+  await app.listen(port, host);
+  logger.log(`Application is running on: http://${host}:${port}/api`);
+  logger.log(`WebSocket Gateway is running on: ws://${host}:${port}`);
 }
 bootstrap();

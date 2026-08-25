@@ -14,7 +14,9 @@ RUN npm run build
 
 # --- PRODUCTION DEPENDENCIES STAGE ---
 FROM base AS prod-dependencies
-RUN npm ci --omit=dev
+# Husky is a development-only dependency, so its prepare hook cannot run after
+# dev dependencies are omitted from the minimal runtime image.
+RUN npm ci --omit=dev --ignore-scripts
 
 # --- RUNNER STAGE (FOR STAGING & PRODUCTION) ---
 FROM node:24-alpine AS runner

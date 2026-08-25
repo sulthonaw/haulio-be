@@ -34,6 +34,7 @@ Kami menyediakan template environment untuk setiap environment:
 Konfigurasi utama di dalam file `.env.*`:
 ```env
 NODE_ENV=development/staging/production
+HOST=127.0.0.1
 PORT=3001
 CORS_ORIGIN=http://127.0.0.1:3000
 DS_API_URL=http://127.0.0.1:8080/api/v1
@@ -53,6 +54,11 @@ DB_PASSWORD=postgres
 DB_DATABASE=haulio_db
 DB_SYNCHRONIZE=true (pastikan false di production!)
 ```
+
+`HOST` defaults to loopback for a host-run development server. Set it to
+`0.0.0.0` only inside the local-demo container network; the frontend Compose
+file supplies this value without exposing the backend beyond loopback on the
+host.
 
 ---
 
