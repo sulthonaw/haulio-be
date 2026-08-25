@@ -200,7 +200,7 @@ npm ci
 npm run start:dev
 
 # Terminal 3: frontend
-cd ../compfest-aic-2026-fe
+cd ../haulio-fe
 cp .env.local.example .env.local # only if .env.local does not exist
 npm run dev -- --hostname 127.0.0.1
 ```
