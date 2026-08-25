@@ -1,61 +1,64 @@
+name: haulio-local-demo
+
 services:
-  # NestJS Application
-  api:
+  # The backend joins the shared local-demo network and reaches the separately
+  # started DS service through the stable service hostname `ds`.
+  be:
     build:
       context: .
-      target: dependencies
-    container_name: haulio_api_dev
-    command: npm run start:dev
-    ports:
-      - "3000:3000"
-    volumes:
-      - .:/app
-      - /app/node_modules
+      target: runner
     environment:
-      - NODE_ENV=development
-      - PORT=3000
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
-      - DB_DATABASE=haulio_dev
-      - DB_SYNCHRONIZE=true
-      - CORS_ORIGIN=*
-    env_file:
-      - .env.development
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3001
+      CORS_ORIGIN: http://127.0.0.1:3000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      DB_DATABASE: haulio_demo
+      DB_SYNCHRONIZE: "true"
+      DS_API_URL: http://ds:8088/
+      DS_IOT_SHARED_SECRET: ""
+      MQTT_ENABLED: "false"
+      MQTT_URL: mqtt://mosquitto:1883
+      MQTT_TOPIC_PREFIX: haulio/v1/telemetry
+      MQTT_CLIENT_ID: haulio-local-demo
+      IOT_DEVICE_MAPPINGS: "[]"
+    ports:
+      - "127.0.0.1:3001:3001"
     depends_on:
       postgres:
         condition: service_healthy
+      mosquitto:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3001/api').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
 
-  # PostgreSQL Database
   postgres:
     image: postgres:16-alpine
-    container_name: haulio_postgres_dev
-    ports:
-      - "5432:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=haulio_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: haulio_demo
     volumes:
-      - postgres_data_dev:/var/lib/postgresql/data
+      - postgres_demo_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d haulio_dev"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d haulio_demo"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
 
-  # Development-only, loopback-bound MQTT broker for exercising the gateway.
-  # It deliberately has no credentials or TLS; do not deploy this configuration.
   mosquitto:
     image: eclipse-mosquitto:2
-    container_name: haulio_mosquitto_dev
-    ports:
-      - "127.0.0.1:1883:1883"
     volumes:
       - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
-      - mosquitto_data_dev:/mosquitto/data
+      - mosquitto_demo_data:/mosquitto/data
 
 volumes:
-  postgres_data_dev:
-  mosquitto_data_dev:
+  postgres_demo_data:
+  mosquitto_demo_data:
