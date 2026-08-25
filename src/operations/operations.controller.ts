@@ -1,10 +1,14 @@
 import { Body, Controller, Get, Param, Post, Req, Res } from '@nestjs/common';
 import type { Request, Response } from 'express';
+import { LocalOperationsService } from './local-operations.service';
 import { OperationsService } from './operations.service';
 
 @Controller('v1')
 export class OperationsController {
-  constructor(private readonly operationsService: OperationsService) {}
+  constructor(
+    private readonly operationsService: OperationsService,
+    private readonly localOperationsService: LocalOperationsService,
+  ) {}
 
   @Get('health')
   health(@Req() request: Request, @Res() response: Response): Promise<void> {
@@ -12,13 +16,13 @@ export class OperationsController {
   }
 
   @Get('metrics')
-  metrics(@Req() request: Request, @Res() response: Response): Promise<void> {
-    return this.operationsService.forward(request, response, 'GET', 'metrics');
+  metrics() {
+    return this.localOperationsService.metrics();
   }
 
   @Get('fleet')
-  fleet(@Req() request: Request, @Res() response: Response): Promise<void> {
-    return this.operationsService.forward(request, response, 'GET', 'fleet');
+  fleet() {
+    return this.localOperationsService.fleet();
   }
 
   @Get('orders')
@@ -27,65 +31,28 @@ export class OperationsController {
   }
 
   @Get('regions')
-  regions(@Req() request: Request, @Res() response: Response): Promise<void> {
-    return this.operationsService.forward(request, response, 'GET', 'regions');
+  regions() {
+    return this.localOperationsService.regions();
   }
 
   @Get('recommendations')
-  recommendations(
-    @Req() request: Request,
-    @Res() response: Response,
-  ): Promise<void> {
-    return this.operationsService.forward(
-      request,
-      response,
-      'GET',
-      'recommendations',
-    );
+  recommendations() {
+    return this.localOperationsService.recommendations();
   }
 
   @Get('recommendations/:recommendationId/route-options')
-  routeOptions(
-    @Req() request: Request,
-    @Res() response: Response,
-    @Param('recommendationId') recommendationId: string,
-  ): Promise<void> {
-    return this.operationsService.forward(
-      request,
-      response,
-      'GET',
-      `recommendations/${encodeURIComponent(recommendationId)}/route-options`,
-    );
+  routeOptions(@Param('recommendationId') recommendationId: string) {
+    return this.localOperationsService.routeOptions(recommendationId);
   }
 
   @Get('recommendations/:recommendationId/live-traffic')
-  liveTraffic(
-    @Req() request: Request,
-    @Res() response: Response,
-    @Param('recommendationId') recommendationId: string,
-  ): Promise<void> {
-    return this.operationsService.forward(
-      request,
-      response,
-      'GET',
-      `recommendations/${encodeURIComponent(recommendationId)}/live-traffic`,
-    );
+  liveTraffic(@Param('recommendationId') recommendationId: string) {
+    return this.localOperationsService.liveTraffic(recommendationId);
   }
 
   @Post('recommendations/:recommendationId/decision')
-  decision(
-    @Req() request: Request,
-    @Res() response: Response,
-    @Param('recommendationId') recommendationId: string,
-    @Body() body: unknown,
-  ): Promise<void> {
-    return this.operationsService.forward(
-      request,
-      response,
-      'POST',
-      `recommendations/${encodeURIComponent(recommendationId)}/decision`,
-      body,
-    );
+  decision(@Param('recommendationId') recommendationId: string, @Body() body: unknown) {
+    return this.localOperationsService.decide(recommendationId, body);
   }
 
   @Post('telemetry')
@@ -104,17 +71,7 @@ export class OperationsController {
   }
 
   @Post('simulation/tick')
-  simulate(
-    @Req() request: Request,
-    @Res() response: Response,
-    @Body() body: unknown,
-  ): Promise<void> {
-    return this.operationsService.forward(
-      request,
-      response,
-      'POST',
-      'simulation/tick',
-      body,
-    );
+  simulate() {
+    return this.localOperationsService.simulateTelemetryTick();
   }
 }

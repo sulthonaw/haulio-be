@@ -7,6 +7,10 @@ services:
     build:
       context: .
       target: runner
+    # The user-provided key remains on the host in the ignored DS .env file.
+    # The backend uses it only for on-demand Google Routes visualisation.
+    env_file:
+      - ../compfest-aic-2026-ds/.env
     environment:
       NODE_ENV: production
       HOST: 0.0.0.0
