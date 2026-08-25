@@ -177,7 +177,7 @@ oleh Git: `../compfest-aic-2026-ds/.env`. Backend Compose mengimpor file itu
 sebagai `GOOGLE_MAP_API` dan menggunakannya hanya saat perlu menggambar rute
 jalan serta alternatifnya. Key tidak boleh diletakkan di frontend atau di-commit.
 
-Panduan lengkap—membuat key di [Google Maps Platform console](https://console.cloud.google.com/google/maps-apis/?pli=1), mengaktifkan **Routes API**, menjalankan DS → BE → FE, dan me-seed 300 truk demo—ada di [README DS](https://github.com/ElFariss/compfest-aic-2026-ds#hackathon-local-demo-ds--be--fe).
+Panduan lengkap—membuat key di [Google Maps Platform console](https://console.cloud.google.com/google/maps-apis/onboard;flow=just-ask-flow;step=just_ask?authuser=1), mengaktifkan **Routes API**, menjalankan DS → BE → FE, dan me-seed 300 truk demo—ada di [README DS](https://github.com/ElFariss/compfest-aic-2026-ds#hackathon-local-demo-ds--be--fe).
 
 Tanpa `GOOGLE_MAP_API`, operasi lokal tetap dapat berjalan dengan route fallback;
 Google road-matched route tidak akan tersedia.
