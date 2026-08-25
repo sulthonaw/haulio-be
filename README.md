@@ -8,7 +8,16 @@ Project backend dibangun menggunakan **NestJS**, **Socket.io** (real-time commun
 
 ---
 
+## Related repositories
+
+- Data science: https://github.com/ElFariss/compfest-aic-2026-ds
+- Frontend: https://github.com/sulthonaw/haulio-fe
+- Backend (repository ini): https://github.com/sulthonaw/haulio-be
+
+---
+
 ## Daftar Isi
+- [Related repositories](#related-repositories)
 - [Prasyarat](#prasyarat)
 - [Struktur Lingkungan (Environment Variables)](#struktur-lingkungan-environment-variables)
 - [1. Menjalankan di Lingkungan Lokal (Lokal / Development)](#1-menjalankan-di-lingkungan-lokal-lokal--development)
