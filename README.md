@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/haulio-team.png" alt="Haulio — AI Autonomous Backhaul Optimizer, IoT Songgoriti team" width="900" />
+</p>
+
 # Haulio Backend (NestJS operations gateway + Socket.io + PostgreSQL)
 
 Project backend dibangun menggunakan **NestJS**, **Socket.io** (real-time communication), dan **PostgreSQL** (TypeORM). Untuk aplikasi hackathon ini, backend juga menjadi gateway loopback yang meneruskan endpoint operasi ke service data-science Python. Dilengkapi dengan konfigurasi **Docker** multi-stage dan **GitHub Actions CI/CD** untuk lingkungan Staging dan Production.
