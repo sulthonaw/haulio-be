@@ -159,8 +159,8 @@ Production menggunakan build target `runner` yang teroptimasi penuh serta menona
 
 Frontend Next.js memanggil gateway ini secara server-side, sehingga browser hanya
 mengakses `http://127.0.0.1:3000/api/v1/*`. Gateway meneruskan endpoint operasi
-yang diketahui ke `DS_API_URL`; kredensial Google Routes tetap berada di service
-data-science dan tidak diteruskan ke browser.
+yang diketahui ke `DS_API_URL`; Google Routes dipanggil server-side oleh backend
+dan tidak diteruskan ke browser.
 
 ```text
 FE (127.0.0.1:3000) -> Nest gateway (127.0.0.1:3001/api/v1) -> DS (127.0.0.1:8080/api/v1)
@@ -169,6 +169,18 @@ FE (127.0.0.1:3000) -> Nest gateway (127.0.0.1:3001/api/v1) -> DS (127.0.0.1:808
 Endpoint gateway mencakup health, metrics, fleet, orders, regions,
 recommendations, route options, live traffic, telemetry, simulation tick, dan
 dispatcher decision. Endpoint di luar kontrak tersebut tidak diproxy.
+
+### Google Routes key dan local demo
+
+Untuk demo Docker tiga repository, key Google disimpan di file yang di-ignore
+oleh Git: `../compfest-aic-2026-ds/.env`. Backend Compose mengimpor file itu
+sebagai `GOOGLE_MAP_API` dan menggunakannya hanya saat perlu menggambar rute
+jalan serta alternatifnya. Key tidak boleh diletakkan di frontend atau di-commit.
+
+Panduan lengkap—membuat key di [Google Maps Platform console](https://console.cloud.google.com/google/maps-apis/?pli=1), mengaktifkan **Routes API**, menjalankan DS → BE → FE, dan me-seed 300 truk demo—ada di [README DS](https://github.com/ElFariss/compfest-aic-2026-ds#hackathon-local-demo-ds--be--fe).
+
+Tanpa `GOOGLE_MAP_API`, operasi lokal tetap dapat berjalan dengan route fallback;
+Google road-matched route tidak akan tersedia.
 
 Untuk menjalankan seluruh stack secara lokal:
 
